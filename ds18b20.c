@@ -34,6 +34,7 @@
 #include <signal.h>
 #include <syslog.h>
 #include <time.h>
+#include <wiringPi.h>
 
 #define PROBEPATH    "/sys/bus/w1/devices"	// Location of the probes
 #define LOGROOT      "/var/probes"		// Location of the logs
@@ -42,6 +43,7 @@
 #define MAXPROBES    5				// Max number of probes
 #define PROBENAMELEN 80				// Max length of the probenames including directory.
 #define BUFSIZE      256			// Typical charbuffer
+#define RelayPn 0
 
 // Globals.  (Yes, I know)...
 int verbose, numprobes, foreground, interval, dolog, dorrd;
@@ -212,6 +214,13 @@ int update_rrd(int probe, float temp) {
 }
 
 int main(int argc, char **argv) {
+
+	// Initialize wiringpi
+	if(wiringPiSetup() == -1){ //If wiringpi initialization failed, printf
+	printf("Wiring Pi Initialization Failed");
+	return 1;
+	}
+
 	int c, once, nagios, nagiosexit;
 	double temperature, mintemp, maxtemp;
 	char *myname, *bmyname, *temp;
@@ -393,14 +402,20 @@ int main(int argc, char **argv) {
 					if (mintemp && temperature < mintemp) {
 						fprintf(stdout, "CRITICAL: Temperature of probe '%s' is %2.3f which is below %2.3f | 'temperature'=%2.3f\n",
 							probename[c], temperature, mintemp, temperature);
+						pinMode(RelayPn, OUTPUT);
+						digitalWrite(RelayPn, HIGH);
 						nagiosexit = 2;
 					} else if (maxtemp && temperature > maxtemp) {
 						fprintf(stdout, "CRITICAL: Temperature of probe '%s' is %2.3f which is over %2.3f | 'temperature'=%2.3f\n",
 							probename[c], temperature, maxtemp, temperature);
+						pinMode(RelayPn, OUTPUT);
+						digitalWrite(RelayPn, HIGH);
 						nagiosexit = 2;
 					} else {
 						fprintf(stdout, "OK: Temperature of probe '%s' is %2.3f | 'temperature'=%2.3f\n",
 							probename[c], temperature, temperature);
+						pinMode(RelayPn, OUTPUT);
+						digitalWrite(RelayPn, LOW);
 						nagiosexit = 0;
 					}
 				} else {
