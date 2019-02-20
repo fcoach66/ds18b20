@@ -2,7 +2,7 @@ CC=gcc
 #CFLAGS=-c -O -g -Wall -I/usr/include/mysql
 #LDFLAGS=-L/usr/lib/mysql -lmysqlclient
 CFLAGS=-c -O -g -Wall
-LDFLAGS=
+LDFLAGS= -lwiringPi
 SOURCES=ds18b20.c
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=ds18b20
@@ -17,4 +17,3 @@ $(EXECUTABLE): $(OBJECTS)
 
 clean:
 	rm -rf *.o ds18b20
-
